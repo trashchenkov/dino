@@ -112,41 +112,45 @@ class DinosaurAnalyzer:
     
     def analyze_image_from_pil(self, image: Image.Image) -> Optional[DinosaurInfo]:
         """
-        Анализирует PIL изображение динозавра.
+        Анализирует изображение динозавра из PIL.Image объекта.
         
         Args:
-            image: PIL изображение
+            image: PIL.Image объект
             
         Returns:
             DinosaurInfo объект с информацией о динозавре или None при ошибке
         """
-        temp_path = None
         try:
-            # Сохраняем временный файл
-            temp_path = save_temp_image(image)
+            print(f"📸 Анализируем изображение размера {image.size}...")
             
-            # Отправляем запрос к Gemini API с оптимизированным изображением
-            optimized_img = optimize_image_for_api(image)
-            response = self.model.generate_content([optimized_img])
+            # Оптимизируем изображение для API
+            optimized_image = optimize_image_for_api(image)
+            print(f"✅ Изображение оптимизировано до размера {optimized_image.size}")
             
-            # Парсим JSON ответ в объект DinosaurInfo
-            dino_data = DinosaurInfo.model_validate_json(response.text)
-            return dino_data
+            # Отправляем запрос к Gemini API
+            response = self.model.generate_content([
+                "Проанализируй эту фигурку динозавра согласно инструкциям:",
+                optimized_image
+            ])
+            
+            # Парсим JSON ответ
+            result_text = response.text.strip()
+            print(f"📝 Получен ответ от API: {result_text[:100]}...")
+            
+            # Парсим ответ как JSON и создаем объект DinosaurInfo
+            result_data = json.loads(result_text)
+            dinosaur_info = DinosaurInfo(**result_data)
+            
+            print(f"🦕 Успешно идентифицирован: {dinosaur_info.species_name}")
+            return dinosaur_info
             
         except json.JSONDecodeError as e:
-            print(f"Ошибка парсинга JSON: {e}")
-            if 'response' in locals():
-                print(f"Ответ модели: {response.text}")
+            print(f"❌ Ошибка парсинга JSON: {e}")
+            print(f"📄 Полученный ответ: {result_text}")
             return None
         except Exception as e:
-            print(f"Произошла ошибка при анализе изображения: {e}")
-            if 'response' in locals() and hasattr(response, 'prompt_feedback'):
-                print(f"Обратная связь: {response.prompt_feedback}")
+            print(f"❌ Ошибка при анализе изображения: {e}")
             return None
-        finally:
-            # Очищаем временный файл
-            if temp_path:
-                cleanup_temp_file(temp_path)
     
     def print_dinosaur_info(self, info: DinosaurInfo) -> None:
         """
