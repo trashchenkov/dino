@@ -3,12 +3,17 @@ import json
 from typing import Optional
 from PIL import Image
 import google.generativeai as genai
-from dotenv import load_dotenv
+
+# Пытаемся импортировать dotenv, если доступен (для локальной разработки)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # На HF Spaces dotenv может быть недоступен, это нормально
+    pass
+
 from models import DinosaurInfo
 from utils import optimize_image_for_api, save_temp_image, cleanup_temp_file, validate_image_file
-
-# Загружаем переменные окружения из .env файла
-load_dotenv()
 
 class DinosaurAnalyzer:
     """Класс для анализа изображений динозавров с помощью Gemini API."""
