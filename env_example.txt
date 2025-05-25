@@ -1,0 +1,6 @@
+# Пример файла с переменными окружения
+# Скопируйте этот файл в .env и укажите ваш API ключ
+
+# API ключ для Gemini API
+# Получить можно на https://ai.google.dev/
+GEMINI_API_KEY=your_api_key_here 
